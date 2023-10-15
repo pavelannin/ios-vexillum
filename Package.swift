@@ -14,10 +14,7 @@ let package = Package(
         .library(name: "Vexillum", targets: ["Vexillum"]),
     ],
     targets: [
-        .target(
-            name: "Vexillum"),
-        .testTarget(
-            name: "VexillumTests",
-            dependencies: ["Vexillum"]),
+        .target(name: "Vexillum"),
+        .testTarget(name: "VexillumTests", dependencies: ["Vexillum"]),
     ]
 )

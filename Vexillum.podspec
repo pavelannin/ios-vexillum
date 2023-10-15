@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Vexillum'
-  s.version          = '0.1.2'
+  s.version          = '0.1.3'
   s.summary          = 'Feature toggling'
   s.description      = <<-DESC
                         Swift package for managing feature flags.
@@ -12,9 +12,6 @@ Pod::Spec.new do |s|
   s.homepage         = 'https://github.com/pavelannin/ios-vexillum'
 
   s.ios.deployment_target = '13.0'
-  s.osx.deployment_target = '11.0'
-  s.tvos.deployment_target = '13.0'
-  s.watchos.deployment_target = '7.0'
 
   s.source_files = 'Sources/Vexillum/*.swift'
   s.swift_versions = ['5.7', '5.8', '5.9']
