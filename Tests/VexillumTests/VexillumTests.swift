@@ -1,12 +1,74 @@
 import XCTest
-@testable import ios_vexillum
+import Combine
+@testable import Vexillum
 
-final class ios_vexillumTests: XCTestCase {
-    func testExample() throws {
-        // XCTest Documentation
-        // https://developer.apple.com/documentation/xctest
+final class VexillumTests: XCTestCase {
+    
+    private var cancellables: Set<AnyCancellable> = []
+    
+    func testEnabledShouldReturnTrueWhenFeatureIsEnabled() throws {
+        let service = Vexillum()
+        let feature = Vexillum.FeatureToggle.Static(enabled: true)
+        XCTAssertTrue(service.enabled(feature))
+    }
+    
+    func testEnabledShouldReturnFalseWhenFeatureIsDisabled() throws {
+        let service = Vexillum()
+        let feature = Vexillum.FeatureToggle.Static(enabled: false)
+        XCTAssertFalse(service.enabled(feature))
+    }
+    
+    func testPayloadShouldReturnTheCorrectPayloadForStaticFeature() throws {
+        let service = Vexillum()
+        let feature = Vexillum.FeatureToggle.Static(enabled: false, payload: "my_key")
+        XCTAssertEqual("my_key", service.payload(feature))
+    }
 
-        // Defining Test Cases and Test Methods
-        // https://developer.apple.com/documentation/xctest/defining_test_cases_and_test_methods
+    func testObserveEnabledShouldObserveEmitProviderWhenDynamicFeatureIsEnabled() throws {
+        let provider = CurrentValueSubject<Bool?, Never>(nil)
+        let feature = Vexillum.FeatureToggle.Dynamic(defaultEnabled: true)
+        let service = Vexillum(
+            providers: [
+                provider
+                    .compactMap { $0 }
+                    .map { [Vexillum.AnyProviderResult(feature: feature, newEnabled: $0, newPayload: ())] }
+                    .eraseToAnyPublisher()
+            ]
+        )
+        
+        let observe = service.observeEnabled(feature)
+        // default value
+        observe.first().sink(receiveValue: { XCTAssertTrue($0) }).store(in: &cancellables)
+        
+        provider.send(false)
+        observe.first().sink(receiveValue: { XCTAssertFalse($0) }).store(in: &cancellables)
+        
+        provider.send(true)
+        observe.prefix(1).first().sink(receiveValue: { XCTAssertTrue($0) }).store(in: &cancellables)
+        
+    }
+    
+    func testObservePayloadShouldEmitTheCorrectPayloadForDynamicFeature() throws {
+        let provider = CurrentValueSubject<String?, Never>(nil)
+        let feature = Vexillum.FeatureToggle.Dynamic(defaultEnabled: true, defaultPayload: "key_default")
+        let service = Vexillum(
+            providers: [
+                provider
+                    .compactMap { $0 }
+                    .map { [Vexillum.AnyProviderResult(feature: feature, newEnabled: true, newPayload: $0)] }
+                    .eraseToAnyPublisher()
+            ]
+        )
+        
+        let observe = service.observePayload(feature)
+        // default value
+        observe.first().sink(receiveValue: { XCTAssertEqual("key_default", $0) }).store(in: &cancellables)
+        
+        provider.send("key_1")
+        observe.first().sink(receiveValue: {XCTAssertEqual("key_1", $0)  }).store(in: &cancellables)
+        
+        provider.send("key_2")
+        observe.first().sink(receiveValue: { XCTAssertEqual("key_2", $0)  }).store(in: &cancellables)
+        
     }
 }
