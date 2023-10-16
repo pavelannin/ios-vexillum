@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Vexillum'
-  s.version          = '0.1.3'
+  s.version          = '0.1.4'
   s.summary          = 'Feature toggling'
   s.description      = <<-DESC
                         Swift package for managing feature flags.
